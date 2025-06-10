@@ -37,6 +37,8 @@ import java.util.function.Consumer;
 
 /**
  * the monitor plugin.
+ *
+ * @author XY
  */
 public class MetricsPlugin implements ShenyuPlugin {
 
@@ -46,13 +48,14 @@ public class MetricsPlugin implements ShenyuPlugin {
         ShenyuContext shenyuContext = exchange.getAttribute(Constants.CONTEXT);
         Objects.requireNonNull(shenyuContext);
         setMetricsCallbacks(exchange);
-        MetricsReporter.counterIncrement(LabelNames.REQUEST_TYPE_TOTAL, new String[]{exchange.getRequest().getURI().getRawPath(), shenyuContext.getRpcType()});
+        String path = exchange.getRequest().getURI().getRawPath();
+        ServerHttpResponse response = exchange.getResponse();
+        MetricsReporter.counterIncrement(LabelNames.REQUEST_TYPE_TOTAL, new String[]{path, shenyuContext.getRpcType()});
         LocalDateTime startDateTime = Optional.of(shenyuContext).map(ShenyuContext::getStartDateTime).orElseGet(LocalDateTime::now);
-        return chain.execute(exchange).doOnSuccess(e -> responseCommitted(exchange, startDateTime))
-                .doOnError(throwable -> {
-                    MetricsReporter.counterIncrement(LabelNames.REQUEST_THROW_TOTAL);
-                    responseCommitted(exchange, startDateTime);
-                });
+        return chain.execute(exchange).doOnSuccess(e -> responseCommitted(response, startDateTime, path)).doOnError(throwable -> {
+            MetricsReporter.counterIncrement(LabelNames.REQUEST_THROW_TOTAL);
+            responseCommitted(response, startDateTime, path);
+        });
     }
 
     private void setMetricsCallbacks(final ServerWebExchange exchange) {
@@ -92,20 +95,20 @@ public class MetricsPlugin implements ShenyuPlugin {
         return PluginEnum.METRICS.getName();
     }
 
-    private void responseCommitted(final ServerWebExchange exchange, final LocalDateTime startDateTime) {
-        ServerHttpResponse response = exchange.getResponse();
+    private void responseCommitted(ServerHttpResponse response, final LocalDateTime startDateTime, final String path) {
         if (response.isCommitted()) {
-            recordTime(startDateTime);
+            recordTime(startDateTime, path);
         } else {
             response.beforeCommit(() -> {
-                recordTime(startDateTime);
+                recordTime(startDateTime, path);
                 return Mono.empty();
             });
         }
     }
 
-    private void recordTime(final LocalDateTime startDateTime) {
+    private void recordTime(final LocalDateTime startDateTime, final String path) {
         long millisBetween = DateUtils.acquireMillisBetween(startDateTime, LocalDateTime.now());
         MetricsReporter.recordTime(LabelNames.EXECUTE_LATENCY_NAME, millisBetween);
+        MetricsReporter.recordTime(LabelNames.EXECUTE_LATENCY_NAME_PATH, new String[]{path}, millisBetween);
     }
 }

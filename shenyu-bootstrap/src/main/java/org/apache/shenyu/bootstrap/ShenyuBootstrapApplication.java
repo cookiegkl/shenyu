@@ -17,8 +17,16 @@
 
 package org.apache.shenyu.bootstrap;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 /**
  * Shenyu bootstrap.
@@ -26,12 +34,22 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class ShenyuBootstrapApplication {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuBootstrapApplication.class);
+
     /**
      * Main Entrance.
      *
      * @param args startup arguments
      */
-    public static void main(final String[] args) {
-        SpringApplication.run(ShenyuBootstrapApplication.class, args);
+    public static void main(final String[] args) throws UnknownHostException {
+        ConfigurableApplicationContext context = SpringApplication.run(ShenyuBootstrapApplication.class, args);
+        ConfigurableEnvironment environment = context.getEnvironment();
+        String ip = InetAddress.getLocalHost().getHostAddress();
+        String port = environment.getProperty("server.port");
+        String path = environment.getProperty("server.servlet.context-path");
+        if (StringUtils.isBlank(path)) {
+            path = "";
+        }
+        LOGGER.info("ShenyuBootstrapApplication start on: http://{}:{}{}", ip, port, path);
     }
 }

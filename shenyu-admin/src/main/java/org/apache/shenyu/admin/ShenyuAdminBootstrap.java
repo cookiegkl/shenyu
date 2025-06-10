@@ -17,23 +17,43 @@
 
 package org.apache.shenyu.admin;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.ldap.LdapAutoConfiguration;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
 
 /**
  * shenyu admin startShenyuAdminBootstrap.
+ *
+ * @author XY
  */
 @SpringBootApplication(exclude = {LdapAutoConfiguration.class})
 public class ShenyuAdminBootstrap {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ShenyuAdminBootstrap.class);
 
     /**
      * Main entrance.
      *
      * @param args startup arguments.
      */
-    public static void main(final String[] args) {
-        SpringApplication.run(ShenyuAdminBootstrap.class, args);
+    public static void main(final String[] args) throws UnknownHostException {
+        ConfigurableApplicationContext context = SpringApplication.run(ShenyuAdminBootstrap.class, args);
+        ConfigurableEnvironment environment = context.getEnvironment();
+        String ip = InetAddress.getLocalHost().getHostAddress();
+        String port = environment.getProperty("server.port");
+        String path = environment.getProperty("server.servlet.context-path");
+        if (StringUtils.isBlank(path)) {
+            path = "";
+        }
+        LOGGER.info("ShenyuAdminBootstrap start on: http://{}:{}{}", ip, port, path);
     }
 
 }

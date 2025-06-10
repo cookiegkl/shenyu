@@ -21,7 +21,7 @@ spring:
   application:
     name: shenyu-admin
   profiles:
-    active: h2
+    active: mysql
   thymeleaf:
     cache: true
     encoding: utf-8
@@ -171,7 +171,7 @@ shenyu:
       - /plugin-handle/**
       - /plugin-handle/batch
     zookeeper:
-      url: localhost:2181
+      url: 10.110.9.100:2181
       sessionTimeout: 5000
       connectionTimeout: 2000
   shiro:
@@ -214,7 +214,7 @@ shenyu:
       monitor-interval: 10000
       pool-size: 6
     prometheus:
-      url: http://localhost:9090
+      url: http://127.0.0.1:9090
       queries:
         cpu_usage: "sum(rate(container_cpu_usage_seconds_total{namespace='%s', pod=~'%s.*'}[5m]))"
         memory_usage: "sum(container_memory_usage_bytes{namespace='%s', pod=~'%s.*'})"

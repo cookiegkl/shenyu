@@ -43,6 +43,11 @@ public final class LabelNames {
     public static final String EXECUTE_LATENCY_NAME = "shenyu_execute_latency_millis";
 
     /**
+     * The constant EXECUTE_LATENCY_NAME_PATH.
+     */
+    public static final String EXECUTE_LATENCY_NAME_PATH = "shenyu_execute_latency_millis_path";
+
+    /**
      * The constant RATELIMITER_REQUEST_RESTRICT_TOTAL.
      */
     public static final String RATELIMITER_REQUEST_RESTRICT_TOTAL = "shenyu_ratelimiter_request_restrict_total";
